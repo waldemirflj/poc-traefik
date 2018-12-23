@@ -1,0 +1,61 @@
+version: '3'
+
+services:
+  traefik:
+    container_name: traefik
+    image: traefik
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.toml:/traefik.toml
+      - ./acme.json:/acme.json
+    labels: 
+      - "traefik.frontend.rule=Host:${TRAEFIK_MONITOR}"
+      - "traefik.port=8080"
+    networks: 
+      - web
+
+  api:
+    container_name: api
+    image: nginx:1.15.7-alpine
+    labels: 
+      - "traefik.backend=api"
+      - "traefik.frontend.rule=Host:${TRAEFIK_API}"
+      - "traefik.docker.network=web"
+      - "traefik.port=80"
+    volumes:
+      - ./web/:/usr/share/nginx/html
+    networks: 
+      - web
+  
+  web:
+    container_name: web
+    image: nginx:1.15.7-alpine
+    labels: 
+      - "traefik.backend=web"
+      - "traefik.frontend.rule=Host:${TRAEFIK_WEB}"
+      - "traefik.docker.network=web"
+      - "traefik.port=80"
+    volumes:
+      - ./web/:/usr/share/nginx/html
+    networks: 
+      - web
+  
+  painel:
+    container_name: painel
+    image: nginx:1.15.7-alpine
+    labels: 
+      - "traefik.backend=painel"
+      - "traefik.frontend.rule=Host:${TRAEFIK_PAINEL}"
+      - "traefik.docker.network=web"
+      - "traefik.port=80"
+    volumes:
+      - ./painel/:/usr/share/nginx/html
+    networks: 
+      - web
+  
+networks: 
+  web:
+    external: true
