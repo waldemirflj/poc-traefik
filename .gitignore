@@ -1,3 +1,4 @@
 .env
 traefik.toml
 /whoami
+/log
